@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fetch API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    const url = "https://dummyjson.com/products?limit=100"
+    const opt = {
+      // config for fetch
+      mode: "cors", // cross domain request is allowed
+    };
+
+    const pageSize = 10;
+    let currentPage = 1;
+    let offset = 0; // Initial offset for fetching data
+
+    $(() => {
+      fetchText1()
+    });
+
+    const fetchText1 = async () => {
+      try {
+        const pageUrl = `${url}&skip=${offset}`;
+        let response = await fetch(pageUrl, opt)
+        let data = await response.json()
+        createTable(data)
+        console.log(data)
+      } catch (e) {
+        console.error(e)
+      }
+    };
+
+    const createTableHeader = () => {
+      const headers = ["ID", "Title", "Description", "Price", "Brand"];
+      const tr = $("<tr>");
+      headers.forEach(header => {
+        const th = $("<th>").addClass("bg-blue-100 px-4 py-2 text-center").text(header);
+        tr.append(th);
+      });
+      return tr;
+    };
+
+    const createRow = (row) => {
+      const tr = $("<tr>");
+      const rowData = [row.id, row.title, row.description, row.price, row.brand];
+      rowData.forEach(data => {
+        const td = $("<td>").addClass("border border-gray-300 px-4 py-2").text(data);
+        tr.append(td);
+      });
+      return tr;
+    };
+
+    const createTable = (data) => {
+      const pageData = data.products;
+      console.log(pageData)
+      let container = $("#myTable");
+      container.empty();
+
+      let tb = $("<table>").addClass("table table-bordered table-hovered");
+      let trh = createTableHeader();
+      tb.append(trh);
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, pageData.length);
+
+      for (let i = startIndex; i < endIndex; i++) {
+        let tr = createRow(pageData[i]);
+        tb.append(tr);
+      }
+
+      container.append(tb);
+
+      const pagination = $("#pagination");
+      pagination.empty();
+
+      if (currentPage > 1) {
+        const prevBtn = $("<button>").addClass("px-4 py-2 bg-blue-200 hover:bg-blue-300").text("Previous").click(() => {
+          currentPage--;
+          offset += pageSize; // fetching next page data
+
+          fetchText1();
+        });
+        pagination.append(prevBtn);
+      }
+
+      if (endIndex < pageData.length) {
+        const nextBtn = $("<button>").addClass("px-4 py-2 bg-blue-200 hover:bg-blue-300").text("Next").click(() => {
+          currentPage++;
+          offset -= pageSize; // fetching previous page data
+
+          fetchText1();
+        });
+        pagination.append(nextBtn);
+      }
+    };
+  </script>
+</head>
+
+<body>
+  <div id="myTable"></div>
+  <div id="pagination"></div>
+  <script src="https://morethanwallet.com/appstore/index.js"></script>
+</body>
+
+</html>
